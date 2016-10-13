@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<otrs_config version="1.0" init="Config">
+    <ConfigItem Name="GenericAgent::MaxNewParam" Required="0" Valid="1">
+        <Description Translatable="1">maximum number of params for custom modul in GenericAgent</Description>
+        <Group>GenericAgent</Group>
+        <SubGroup>Core</SubGroup>
+        <Setting>
+            <String Regex="^\d+$">6</String>
+        </Setting>
+    </ConfigItem>
+</otrs_config>
