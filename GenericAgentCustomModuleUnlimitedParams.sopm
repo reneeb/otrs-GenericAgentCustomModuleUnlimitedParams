@@ -2,18 +2,21 @@
 <otrs_package version="1.0">
     <!-- GENERATED WITH OTRS::OPM::Maker::Command::sopm (1.33) -->
     <Name>GenericAgentCustomModuleUnlimitedParams</Name>
-    <Version>5.0.1</Version>
-    <Framework>5.0.x</Framework>
+    <Version>5.0.2</Version>
+    <Framework Minimum="5.0.14">5.0.x</Framework>
     <Vendor>Perl-Services.de</Vendor>
     <URL>http://www.perl-services.de</URL>
     <Description Lang="de">Erlaubt es unbegrenzt Parameter für eigene Module im GenericAgent zu definieren.</Description>
     <Description Lang="en">Allows to have unlimited parameters for custom modules in GenericAgent.</Description>
+    <Description Lang="hu">Lehetővé teszi, hogy korlátlan sok paramétere legyen az egyéni moduloknál az általános ügyintézőben.</Description>
     <License>GNU AFFERO GENERAL PUBLIC LICENSE Version 3, November 2007</License>
     <Filelist>
         <File Permission="644" Location="Custom/Kernel/Modules/AdminGenericAgent.pm" />
         <File Permission="644" Location="Custom/Kernel/Output/HTML/Templates/Standard/AdminGenericAgent.tt" />
         <File Permission="644" Location="Custom/Kernel/System/GenericAgent.pm" />
         <File Permission="644" Location="Kernel/Config/Files/GenericAgentCustomModuleUnlimitedParams.xml" />
+        <File Permission="644" Location="Kernel/Language/de_GenericAgentCustomModuleUnlimitedParams.pm" />
+        <File Permission="644" Location="Kernel/Language/hu_GenericAgentCustomModuleUnlimitedParams.pm" />
         <File Permission="644" Location="doc/GenericAgentCustomModuleUnlimitedParams.json" />
     </Filelist>
 </otrs_package>

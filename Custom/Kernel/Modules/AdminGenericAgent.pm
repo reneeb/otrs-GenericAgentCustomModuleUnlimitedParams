@@ -12,6 +12,7 @@ use strict;
 use warnings;
 
 use Kernel::System::VariableCheck qw(:all);
+use Kernel::Language qw(Translatable);
 
 our $ObjectManagerDisabled = 1;
 
@@ -663,21 +664,21 @@ sub _MaskUpdate {
         );
         $JobData{ $Type . 'TimePointStart' } = $LayoutObject->BuildSelection(
             Data => {
-                Last   => 'within the last ...',
-                Next   => 'within the next ...',
-                Before => 'more than ... ago',
+                Last   => Translatable('within the last ...'),
+                Next   => Translatable('within the next ...'),
+                Before => Translatable('more than ... ago'),
             },
             Name       => $Type . 'TimePointStart',
             SelectedID => $JobData{ $Type . 'TimePointStart' } || 'Last',
         );
         $JobData{ $Type . 'TimePointFormat' } = $LayoutObject->BuildSelection(
             Data => {
-                minute => 'minute(s)',
-                hour   => 'hour(s)',
-                day    => 'day(s)',
-                week   => 'week(s)',
-                month  => 'month(s)',
-                year   => 'year(s)',
+                minute => Translatable('minute(s)'),
+                hour   => Translatable('hour(s)'),
+                day    => Translatable('day(s)'),
+                week   => Translatable('week(s)'),
+                month  => Translatable('month(s)'),
+                year   => Translatable('year(s)'),
             },
             Name       => $Type . 'TimePointFormat',
             SelectedID => $JobData{ $Type . 'TimePointFormat' },
@@ -841,7 +842,7 @@ sub _MaskUpdate {
         # get list type
         my %Service = $Kernel::OM->Get('Kernel::System::Service')->ServiceList(
             Valid        => 1,
-            KeepChildren => 1,
+            KeepChildren => $ConfigObject->Get('Ticket::Service::KeepChildren') // 0,
             UserID       => $Self->{UserID},
         );
         my %NewService = %Service;
@@ -937,9 +938,9 @@ sub _MaskUpdate {
 
         $JobData{'SearchInArchiveStrg'} = $LayoutObject->BuildSelection(
             Data => {
-                ArchivedTickets    => 'Archived tickets',
-                NotArchivedTickets => 'Unarchived tickets',
-                AllTickets         => 'All tickets',
+                ArchivedTickets    => Translatable('Archived tickets'),
+                NotArchivedTickets => Translatable('Unarchived tickets'),
+                AllTickets         => Translatable('All tickets'),
             },
             Name       => 'SearchInArchive',
             SelectedID => $JobData{SearchInArchive} || 'AllTickets',
@@ -953,8 +954,8 @@ sub _MaskUpdate {
 
         $JobData{'NewArchiveFlagStrg'} = $LayoutObject->BuildSelection(
             Data => {
-                y => 'archive tickets',
-                n => 'restore tickets from archive',
+                y => Translatable('archive tickets'),
+                n => Translatable('restore tickets from archive'),
             },
             Name         => 'NewArchiveFlag',
             PossibleNone => 1,
@@ -1227,7 +1228,7 @@ sub _MaskRun {
     }
     else {
         $LayoutObject->FatalError(
-            Message => "Need Profile!",
+            Message => Translatable('Need Profile!'),
         );
     }
     $JobData{Profile} = $Self->{Profile};
@@ -1280,17 +1281,19 @@ sub _MaskRun {
         }
     }
 
-    # get ticket object
+    # get needed objects
     my $TicketObject = $Kernel::OM->Get('Kernel::System::Ticket');
+    my $ConfigObject = $Kernel::OM->Get('Kernel::Config');
 
     # perform ticket search
+    my $GenericAgentTicketSearch = $ConfigObject->Get("Ticket::GenericAgentTicketSearch") || {};
     my $Counter = $TicketObject->TicketSearch(
         Result          => 'COUNT',
         SortBy          => 'Age',
         OrderBy         => 'Down',
         UserID          => 1,
         Limit           => 60_000,
-        ConditionInline => 1,
+        ConditionInline => $GenericAgentTicketSearch->{ExtendedSearchCondition},
         %JobData,
         %DynamicFieldSearchParameters,
     ) || 0;
@@ -1301,7 +1304,7 @@ sub _MaskRun {
         OrderBy         => 'Down',
         UserID          => 1,
         Limit           => 30,
-        ConditionInline => 1,
+        ConditionInline => $GenericAgentTicketSearch->{ExtendedSearchCondition},
         %JobData,
         %DynamicFieldSearchParameters,
     );
@@ -1321,7 +1324,7 @@ sub _MaskRun {
         },
     );
 
-    my $RunLimit = $Kernel::OM->Get('Kernel::Config')->Get('Ticket::GenericAgentRunLimit');
+    my $RunLimit = $ConfigObject->Get('Ticket::GenericAgentRunLimit');
     if ( $Counter > $RunLimit ) {
         $LayoutObject->Block(
             Name => 'RunLimit',
@@ -1385,7 +1388,7 @@ sub _MaskRun {
 
     # HTML search mask output
     my $Output = $LayoutObject->Header(
-        Title => 'Affected Tickets',
+        Title => Translatable('Affected Tickets'),
     );
     $Output .= $LayoutObject->NavigationBar();
     $Output .= $LayoutObject->Output(
