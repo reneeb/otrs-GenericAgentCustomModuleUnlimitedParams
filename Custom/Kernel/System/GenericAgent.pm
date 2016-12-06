@@ -455,10 +455,25 @@ sub JobRun {
                 print " For all Queues: \n";
             }
             my $GenericAgentTicketSearch = $ConfigObject->Get("Ticket::GenericAgentTicketSearch") || {};
+# ---
+# PS
+# ---
+            my $OTRSVersion     = $Self->_GetOTRSVersion();
+            my $ConditionInline = $OTRSVersion > v5.0.14 ?
+                $GenericAgentTicketSearch->{ExtendedSearchCondition} :
+                1;
+$Kernel::OM->Get('Kernel::System::Log')->Log( Priority => error => Message => "$OTRSVersion // $ConditionInline" );
+# ---
+
             %Tickets = $TicketObject->TicketSearch(
                 %Job,
                 %DynamicFieldSearchParameters,
-                ConditionInline => $GenericAgentTicketSearch->{ExtendedSearchCondition},
+# ---
+# PS
+# ---
+#                ConditionInline => $GenericAgentTicketSearch->{ExtendedSearchCondition},
+                ConditionInline => $ConditionInline,
+# ---
                 Limit           => $Param{Limit} || $RunLimit,
                 UserID          => $Param{UserID},
             );
@@ -512,6 +527,30 @@ sub JobRun {
 
     return 1;
 }
+
+# ---
+# PS
+# ---
+# TODO: For OTRS 6 and greater, this can be removed
+sub _GetOTRSVersion {
+    my ( $Self, %Param ) = @_;
+
+    my $ConfigObject = $Kernel::OM->Get('Kernel::Config');
+    my $MainObject   = $Kernel::OM->Get('Kernel::System::Main');
+
+    my $ContentRef = $MainObject->FileRead(
+        Directory => $ConfigObject->Get('Home'),
+        Filename  => 'RELEASE',
+    );
+
+    my ($VersionNumber) = ${ $ContentRef } =~ m{^VERSION \s* = \s* (\d+\.\d+\.\d+)$}xms;
+
+    require version;
+    my $OTRSVersion = version->declare( 'v' . $VersionNumber );
+
+    return $OTRSVersion;
+}
+# ---
 
 =item JobList()
 

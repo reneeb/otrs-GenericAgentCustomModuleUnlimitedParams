@@ -411,6 +411,12 @@ sub Run {
 sub _MaskUpdate {
     my ( $Self, %Param ) = @_;
 
+# ---
+# PS
+# ---
+    my $OTRSVersion = $Self->_GetOTRSVersion();
+# ---
+
     my %JobData;
 
     if ( $Self->{Profile} ) {
@@ -840,9 +846,21 @@ sub _MaskUpdate {
     if ( $ConfigObject->Get('Ticket::Service') ) {
 
         # get list type
+# ---
+# PS
+# ---
+        my $KeepChildren = $OTRSVersion > v5.0.14 ?
+            ($ConfigObject->Get('Ticket::Service::KeepChildren') // 0) :
+            1;
+# ---
         my %Service = $Kernel::OM->Get('Kernel::System::Service')->ServiceList(
             Valid        => 1,
-            KeepChildren => $ConfigObject->Get('Ticket::Service::KeepChildren') // 0,
+# ---
+# PS
+# ---
+#            KeepChildren => $ConfigObject->Get('Ticket::Service::KeepChildren') // 0,
+            KeepChildren => $KeepChildren,
+# ---
             UserID       => $Self->{UserID},
         );
         my %NewService = %Service;
@@ -1209,6 +1227,30 @@ sub _MaskUpdate {
     return \%JobData;
 }
 
+# ---
+# PS
+# ---
+# TODO: For OTRS 6 and greater, this can be removed
+sub _GetOTRSVersion {
+    my ( $Self, %Param ) = @_;
+
+    my $ConfigObject = $Kernel::OM->Get('Kernel::Config');
+    my $MainObject   = $Kernel::OM->Get('Kernel::System::Main');
+
+    my $ContentRef = $MainObject->FileRead(
+        Directory => $ConfigObject->Get('Home'),
+        Filename  => 'RELEASE',
+    );
+
+    my ($VersionNumber) = ${ $ContentRef } =~ m{^VERSION \s* = \s* (\d+\.\d+\.\d+)$}xms;
+
+    require version;
+    my $OTRSVersion = version->declare( 'v' . $VersionNumber );
+
+    return $OTRSVersion;
+}
+# ---
+
 sub _MaskRun {
     my ( $Self, %Param ) = @_;
 
@@ -1287,13 +1329,27 @@ sub _MaskRun {
 
     # perform ticket search
     my $GenericAgentTicketSearch = $ConfigObject->Get("Ticket::GenericAgentTicketSearch") || {};
+# ---
+# PS
+# ---
+    my $OTRSVersion     = $Self->_GetOTRSVersion();
+    my $ConditionInline = $OTRSVersion > v5.0.14 ?
+        $GenericAgentTicketSearch->{ExtendedSearchCondition} :
+        1;
+$Kernel::OM->Get('Kernel::System::Log')->Log( Priority => error => Message => "$OTRSVersion // $ConditionInline" );
+# ---
     my $Counter = $TicketObject->TicketSearch(
         Result          => 'COUNT',
         SortBy          => 'Age',
         OrderBy         => 'Down',
         UserID          => 1,
         Limit           => 60_000,
-        ConditionInline => $GenericAgentTicketSearch->{ExtendedSearchCondition},
+# ---
+# PS
+# ---
+#        ConditionInline => $GenericAgentTicketSearch->{ExtendedSearchCondition},
+        ConditionInline => $ConditionInline,
+# ---
         %JobData,
         %DynamicFieldSearchParameters,
     ) || 0;
@@ -1304,7 +1360,12 @@ sub _MaskRun {
         OrderBy         => 'Down',
         UserID          => 1,
         Limit           => 30,
-        ConditionInline => $GenericAgentTicketSearch->{ExtendedSearchCondition},
+# ---
+# PS
+# ---
+#        ConditionInline => $GenericAgentTicketSearch->{ExtendedSearchCondition},
+        ConditionInline => $ConditionInline,
+# ---
         %JobData,
         %DynamicFieldSearchParameters,
     );
