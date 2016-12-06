@@ -459,10 +459,9 @@ sub JobRun {
 # PS
 # ---
             my $OTRSVersion     = $Self->_GetOTRSVersion();
-            my $ConditionInline = $OTRSVersion > v5.0.14 ?
+            my $ConditionInline = $OTRSVersion >= v5.0.14 ?
                 $GenericAgentTicketSearch->{ExtendedSearchCondition} :
                 1;
-$Kernel::OM->Get('Kernel::System::Log')->Log( Priority => error => Message => "$OTRSVersion // $ConditionInline" );
 # ---
 
             %Tickets = $TicketObject->TicketSearch(

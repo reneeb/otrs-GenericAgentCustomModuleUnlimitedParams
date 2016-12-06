@@ -849,7 +849,7 @@ sub _MaskUpdate {
 # ---
 # PS
 # ---
-        my $KeepChildren = $OTRSVersion > v5.0.14 ?
+        my $KeepChildren = $OTRSVersion >= v5.0.14 ?
             ($ConfigObject->Get('Ticket::Service::KeepChildren') // 0) :
             1;
 # ---
@@ -1333,10 +1333,9 @@ sub _MaskRun {
 # PS
 # ---
     my $OTRSVersion     = $Self->_GetOTRSVersion();
-    my $ConditionInline = $OTRSVersion > v5.0.14 ?
+    my $ConditionInline = $OTRSVersion >= v5.0.14 ?
         $GenericAgentTicketSearch->{ExtendedSearchCondition} :
         1;
-$Kernel::OM->Get('Kernel::System::Log')->Log( Priority => error => Message => "$OTRSVersion // $ConditionInline" );
 # ---
     my $Counter = $TicketObject->TicketSearch(
         Result          => 'COUNT',
