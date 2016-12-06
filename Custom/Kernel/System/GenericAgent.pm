@@ -297,10 +297,7 @@ sub JobRun {
                     . $Preference->{Type}
             };
 
-            if ( !defined($DynamicFieldTemp) )
-            {
-                next PREFERENCE;
-            }
+            next PREFERENCE if !defined $DynamicFieldTemp;
 
             # extract the dynamic field value from the profile
             my $SearchParameter = $DynamicFieldBackendObject->SearchFieldParameterBuild(
@@ -321,14 +318,15 @@ sub JobRun {
         $Job{TicketID} = $Param{OnlyTicketID};
     }
 
-    # get ticket object
+    # get needed objects
     my $TicketObject = $Kernel::OM->Get('Kernel::System::Ticket');
+    my $ConfigObject = $Kernel::OM->Get('Kernel::Config');
 
     # escalation tickets
     my %Tickets;
 
     # get ticket limit on job run
-    my $RunLimit = $Kernel::OM->Get('Kernel::Config')->Get('Ticket::GenericAgentRunLimit');
+    my $RunLimit = $ConfigObject->Get('Ticket::GenericAgentRunLimit');
     if ( $Job{Escalation} ) {
 
         # Find all tickets which will escalate within the next five days.
@@ -456,10 +454,11 @@ sub JobRun {
             if ( $Self->{NoticeSTDOUT} ) {
                 print " For all Queues: \n";
             }
+            my $GenericAgentTicketSearch = $ConfigObject->Get("Ticket::GenericAgentTicketSearch") || {};
             %Tickets = $TicketObject->TicketSearch(
                 %Job,
                 %DynamicFieldSearchParameters,
-                ConditionInline => 1,
+                ConditionInline => $GenericAgentTicketSearch->{ExtendedSearchCondition},
                 Limit           => $Param{Limit} || $RunLimit,
                 UserID          => $Param{UserID},
             );
@@ -952,9 +951,7 @@ sub _JobRunTicket {
     my $Ticket = "($Param{TicketNumber}/$Param{TicketID})";
 
     # disable sending emails
-    if ( $Param{Config}->{New}->{SendNoNotification} ) {
-        $TicketObject->{SendNoNotification} = 1;
-    }
+    $TicketObject->{SendNoNotification} = $Param{Config}->{New}->{SendNoNotification} ? 1 : 0;
 
     # move ticket
     if ( $Param{Config}->{New}->{Queue} ) {
@@ -1048,6 +1045,22 @@ sub _JobRunTicket {
         );
 
         $IsPendingState = grep { $_ == $Param{Config}->{New}->{StateID} } keys %{ $Self->{PendingStateList} };
+    }
+
+    if (
+        $Param{Config}->{New}->{PendingTime}
+        && !$Param{Config}->{New}->{State}
+        && !$Param{Config}->{New}->{StateID}
+        )
+    {
+        # if pending time is provided, but there is no new ticket state provided,
+        # check if ticket is already in pending state
+        my %Ticket = $TicketObject->TicketGet(
+            TicketID      => $Param{TicketID},
+            DynamicFields => 0,
+        );
+
+        $IsPendingState = grep { $_ eq $Ticket{State} } values %{ $Self->{PendingStateList} };
     }
 
     # set pending time, if new state is pending state
