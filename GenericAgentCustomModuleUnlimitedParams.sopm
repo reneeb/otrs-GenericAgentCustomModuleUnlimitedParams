@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <otrs_package version="1.0">
-    <!-- GENERATED WITH OTRS::OPM::Maker::Command::sopm (1.33) -->
+    <!-- GENERATED WITH OTRS::OPM::Maker::Command::sopm (1.36) -->
     <Name>GenericAgentCustomModuleUnlimitedParams</Name>
     <Version>5.0.2</Version>
-    <Framework Minimum="5.0.14">5.0.x</Framework>
+    <Framework>5.0.x</Framework>
     <Vendor>Perl-Services.de</Vendor>
     <URL>http://www.perl-services.de</URL>
     <Description Lang="de">Erlaubt es unbegrenzt Parameter für eigene Module im GenericAgent zu definieren.</Description>
